@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WasteWeb — Nothing Is Waste</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f5f0e8;
+            --bg2: #ede8de;
+            --ink: #1a1a0f;
+            --ink-dim: #4a4a35;
+            --ink-muted: #8a8a70;
+            --green: #2d5a27;
+            --green-bright: #4a9e3f;
+            --green-light: #c8e6c0;
+            --green-pale: #e8f5e0;
+            --amber: #c17f24;
+            --amber-pale: #fef3d8;
+            --red: #a33a2a;
+            --cream: #faf7f0;
+            --border: #d4cebe;
+            --shadow: rgba(26,26,15,0.12);
+            --display: 'Cabinet Grotesk', sans-serif;
+            --serif: 'Crimson Pro', serif;
+            --mono: 'DM Mono', monospace;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--serif);
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* ─── CUSTOM CURSOR ─── */
+        .cursor {
+            width: 12px;
+            height: 12px;
+            background: var(--green);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.15s ease, width 0.2s, height 0.2s, background 0.2s;
+            transform: translate(-50%, -50%);
+        }
+
+        .cursor-ring {
+            width: 36px;
+            height: 36px;
+            border: 1.5px solid var(--green);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transition: transform 0.08s ease, width 0.2s, height 0.2s, opacity 0.2s;
+            transform: translate(-50%, -50%);
+            opacity: 0.5;
+        }
+
+        .cursor.hovering { width: 20px; height: 20px; background: var(--amber); }
+        .cursor-ring.hovering { width: 52px; height: 52px; border-color: var(--amber); opacity: 0.3; }
+
+        /* ─── ORGANIC BACKGROUND BLOBS ─── */
+        .bg-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.25;
+            pointer-events: none;
+            z-index: 0;
+            animation: blobFloat 12s ease-in-out infinite alternate;
+        }
+
+        .blob1 { width: 500px; height: 500px; background: var(--green-light); top: -100px; right: -100px; animation-delay: 0s; }
+        .blob2 { width: 400px; height: 400px; background: #d4e8a0; bottom: 100px; left: -100px; animation-delay: -4s; }
+        .blob3 { width: 300px; height: 300px; background: var(--amber-pale); top: 40%; right: 20%; animation-delay: -8s; }
+
+        @keyframes blobFloat {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(30px, 20px) scale(1.05); }
+        }
+
+        /* ─── NOISE TEXTURE OVERLAY ─── */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+            opacity: 0.035;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ─── HEADER ─── */
+        header {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(245,240,232,0.8);
+            backdrop-filter: blur(12px);
+        }
+
+        .logo {
+            font-family: var(--display);
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--green-bright);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.7; }
+        }
+
+        .header-tag {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--ink-muted);
+            letter-spacing: 0.05em;
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            background: var(--cream);
+        }
+
+        /* ─── HERO ─── */
+        .hero {
+            position: relative;
+            z-index: 2;
+            padding: 80px 40px 60px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero-kicker {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            color: var(--green);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            animation: slideUp 0.6s ease forwards 0.1s;
+        }
+
+        .hero-kicker-line {
+            width: 32px;
+            height: 1px;
+            background: var(--green);
+        }
+
+        .hero-title {
+            font-family: var(--display);
+            font-size: clamp(56px, 9vw, 120px);
+            font-weight: 900;
+            line-height: 0.88;
+            letter-spacing: -0.04em;
+            color: var(--ink);
+            margin-bottom: 32px;
+            opacity: 0;
+            animation: slideUp 0.7s ease forwards 0.2s;
+        }
+
+        .hero-title .line2 {
+            display: block;
+            color: var(--green);
+            font-style: italic;
+            font-family: var(--display);
+        }
+
+        .hero-title .line3 {
+            display: block;
+            -webkit-text-stroke: 2px var(--ink);
+            color: transparent;
+        }
+
+        .hero-subtitle {
+            font-family: var(--serif);
+            font-size: clamp(18px, 2.5vw, 24px);
+            color: var(--ink-dim);
+            max-width: 560px;
+            line-height: 1.5;
+            font-weight: 300;
+            font-style: italic;
+            opacity: 0;
+            animation: slideUp 0.7s ease forwards 0.35s;
+        }
+
+        .hero-subtitle strong {
+            font-style: normal;
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── MAIN LAYOUT ─── */
+        .main {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px 100px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            align-items: start;
+        }
+
+        /* ─── UPLOAD CARD ─── */
+        .upload-card {
+            background: var(--cream);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 4px 40px var(--shadow);
+            position: sticky;
+            top: 100px;
+            opacity: 0;
+            animation: slideUp 0.7s ease forwards 0.5s;
+        }
+
+        .card-eyebrow {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-eyebrow::before {
+            content: '';
+            width: 20px;
+            height: 1px;
+            background: var(--ink-muted);
+        }
+
+        /* ─── CATEGORY PILLS ─── */
+        .category-select {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .cat-pill {
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 7px 14px;
+            border-radius: 100px;
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--ink-dim);
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.05em;
+        }
+
+        .cat-pill:hover, .cat-pill.active {
+            background: var(--green);
+            border-color: var(--green);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        /* ─── FORM ─── */
+        .field {
+            margin-bottom: 16px;
+        }
+
+        .field label {
+            display: block;
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.15em;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .field input, .field select {
+            width: 100%;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            color: var(--ink);
+            font-family: var(--serif);
+            font-size: 16px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .field input:focus, .field select:focus {
+            border-color: var(--green);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(45,90,39,0.08);
+        }
+
+        .field input::placeholder { color: var(--ink-muted); font-style: italic; }
+
+        .qty-row {
+            display: grid;
+            grid-template-columns: 1fr 100px;
+            gap: 10px;
+        }
+
+        /* ─── SUBMIT BUTTON ─── */
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: var(--green);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-family: var(--display);
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            cursor: pointer;
+            margin-top: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover::before { left: 100%; }
+        .submit-btn:hover { background: var(--green-bright); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(45,90,39,0.3); }
+        .submit-btn:active { transform: translateY(0); }
+        .submit-btn:disabled { background: var(--ink-muted); cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .btn-inner { display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-arrow { transition: transform 0.2s; }
+        .submit-btn:hover .btn-arrow { transform: translateX(4px); }
+
+        /* ─── LOADING ─── */
+        .loading-state {
+            display: none;
+            text-align: center;
+            padding: 48px 0;
+        }
+
+        .loading-state.active { display: block; }
+
+        .loading-orbs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .orb {
+            width: 12px;
+            height: 12px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: orbBounce 1.2s ease-in-out infinite;
+        }
+
+        .orb:nth-child(2) { animation-delay: 0.15s; background: var(--green-bright); }
+        .orb:nth-child(3) { animation-delay: 0.3s; background: var(--amber); }
+
+        @keyframes orbBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-16px) scale(0.85); }
+        }
+
+        .loading-label {
+            font-family: var(--display);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 6px;
+        }
+
+        .loading-sub {
+            font-family: var(--serif);
+            font-size: 14px;
+            color: var(--ink-muted);
+            font-style: italic;
+        }
+
+        .loading-steps {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .loading-step {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--ink-muted);
+            opacity: 0;
+            animation: stepReveal 0.4s ease forwards;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .loading-step::before { content: '◆'; color: var(--green); font-size: 8px; }
+
+        @keyframes stepReveal { to { opacity: 1; } }
+
+        /* ─── RESULTS PANEL ─── */
+        .results-panel {
+            display: none;
+        }
+
+        .results-panel.visible {
+            display: block;
+            animation: slideUp 0.5s ease;
+        }
+
+        /* ─── RESULT HEADER ─── */
+        .result-header-card {
+            background: var(--green);
+            color: white;
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-header-card::before {
+            content: '♻';
+            position: absolute;
+            right: -10px;
+            top: -20px;
+            font-size: 120px;
+            opacity: 0.07;
+            line-height: 1;
+        }
+
+        .result-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            opacity: 0.7;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .result-title {
+            font-family: var(--display);
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 14px;
+        }
+
+        .result-category-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 100px;
+            padding: 5px 14px;
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+
+        /* ─── IMPACT STATS ─── */
+        .impact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .impact-card {
+            background: var(--cream);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 16px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .impact-card:hover { transform: translateY(-3px); }
+
+        .impact-card::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--green-bright);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .impact-card:hover::before { transform: scaleX(1); }
+
+        .impact-num {
+            font-family: var(--display);
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--green);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .impact-unit {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 0.15em;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .impact-eq {
+            font-family: var(--serif);
+            font-size: 12px;
+            color: var(--ink-dim);
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        /* ─── REUSE OPTIONS ─── */
+        .section-title {
+            font-family: var(--display);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+
+        .reuse-list { display: flex; flex-direction: column; gap: 10px; }
+
+        .reuse-card {
+            background: var(--cream);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 18px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            transition: all 0.2s;
+            cursor: default;
+        }
+
+        .reuse-card:hover {
+            border-color: var(--green-bright);
+            background: var(--green-pale);
+            transform: translateX(4px);
+        }
+
+        .reuse-emoji {
+            font-size: 28px;
+            line-height: 1;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .reuse-body { flex: 1; }
+
+        .reuse-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .reuse-name {
+            font-family: var(--display);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .priority-tag {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 0.1em;
+            padding: 3px 9px;
+            border-radius: 4px;
+        }
+
+        .priority-HIGH { background: var(--green-light); color: var(--green); }
+        .priority-MEDIUM { background: var(--amber-pale); color: var(--amber); }
+        .priority-LOW { background: var(--bg2); color: var(--ink-muted); }
+
+        .reuse-desc {
+            font-family: var(--serif);
+            font-size: 14px;
+            color: var(--ink-dim);
+            line-height: 1.5;
+        }
+
+        /* ─── MATCHES ─── */
+        .matches-list { display: flex; flex-direction: column; gap: 10px; }
+
+        .match-card {
+            background: var(--cream);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 18px;
+            transition: all 0.2s;
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .match-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            border-radius: 3px 0 0 3px;
+        }
+
+        .match-card.urgency-HIGH::before { background: var(--green-bright); }
+        .match-card.urgency-MEDIUM::before { background: var(--amber); }
+        .match-card.urgency-LOW::before { background: var(--border); }
+
+        .match-card:hover { border-color: var(--green-bright); transform: translateX(4px); }
+
+        .match-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .match-name {
+            font-family: var(--display);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .match-dist {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--green);
+            white-space: nowrap;
+        }
+
+        .match-type {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--ink-muted);
+            letter-spacing: 0.08em;
+            margin-bottom: 4px;
+        }
+
+        .match-need {
+            font-family: var(--serif);
+            font-size: 14px;
+            color: var(--ink-dim);
+            font-style: italic;
+        }
+
+        /* ─── CONNECT BTN ─── */
+        .connect-btn {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1.5px solid var(--green);
+            border-radius: 12px;
+            color: var(--green);
+            font-family: var(--display);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .connect-btn:hover {
+            background: var(--green);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(45,90,39,0.2);
+        }
+
+        /* ─── RESET ─── */
+        .reset-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: none;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--ink-muted);
+            cursor: pointer;
+            padding: 10px 0;
+            letter-spacing: 0.05em;
+            transition: color 0.2s;
+            margin-top: 8px;
+        }
+
+        .reset-btn:hover { color: var(--ink); }
+
+        /* ─── EMPTY STATE ─── */
+        .empty-state {
+            background: var(--cream);
+            border: 1.5px dashed var(--border);
+            border-radius: 24px;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 56px;
+            margin-bottom: 20px;
+            display: block;
+            animation: emptyFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes emptyFloat {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        .empty-title {
+            font-family: var(--display);
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--ink);
+            margin-bottom: 10px;
+        }
+
+        .empty-sub {
+            font-family: var(--serif);
+            font-size: 16px;
+            color: var(--ink-muted);
+            font-style: italic;
+            line-height: 1.5;
+        }
+
+        .example-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
+        .example-chip {
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 7px 14px;
+            border-radius: 100px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            color: var(--ink-dim);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .example-chip:hover {
+            background: var(--green-pale);
+            border-color: var(--green);
+            color: var(--green);
+            transform: translateY(-1px);
+        }
+
+        /* ─── TICKER ─── */
+        .ticker {
+            background: var(--green);
+            padding: 11px 0;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+
+        .ticker-track {
+            display: flex;
+            white-space: nowrap;
+            animation: tickerScroll 30s linear infinite;
+            width: max-content;
+        }
+
+        .ticker-item {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: rgba(255,255,255,0.85);
+            padding: 0 32px;
+            letter-spacing: 0.08em;
+        }
+
+        .ticker-item::before { content: '✦ '; opacity: 0.5; }
+
+        @keyframes tickerScroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        /* ─── FOOTER ─── */
+        footer {
+            position: relative;
+            z-index: 2;
+            border-top: 1px solid var(--border);
+            padding: 48px 40px;
+            text-align: center;
+        }
+
+        .footer-manifesto {
+            font-family: var(--display);
+            font-size: clamp(24px, 4vw, 44px);
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            color: var(--ink);
+            max-width: 800px;
+            margin: 0 auto 16px;
+        }
+
+        .footer-manifesto em {
+            font-style: italic;
+            color: var(--green);
+            font-family: var(--display);
+        }
+
+        .footer-sub {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--ink-muted);
+            letter-spacing: 0.1em;
+        }
+
+        /* ─── COUNTER ANIMATION ─── */
+        .count-up { display: inline-block; }
+
+        /* ─── TOAST ─── */
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--ink);
+            color: white;
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 12px 24px;
+            border-radius: 100px;
+            letter-spacing: 0.05em;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 900px) {
+            .main { grid-template-columns: 1fr; }
+            .upload-card { position: static; }
+            .hero { padding: 48px 24px 40px; }
+            .main { padding: 0 24px 80px; }
+            header { padding: 16px 24px; }
+        }
+
+        @media (max-width: 600px) {
+            .impact-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<div class="bg-blob blob1"></div>
+<div class="bg-blob blob2"></div>
+<div class="bg-blob blob3"></div>
+
+<!-- TICKER -->
+<div class="ticker">
+    <div class="ticker-track">
+        <span class="ticker-item">Coffee grounds → urban farms</span>
+        <span class="ticker-item">Wood scraps → artist studios</span>
+        <span class="ticker-item">Fruit peels → animal feed</span>
+        <span class="ticker-item">Fabric offcuts → schools</span>
+        <span class="ticker-item">Brewery grain → compost</span>
+        <span class="ticker-item">Cardboard → small businesses</span>
+        <span class="ticker-item">Hair clippings → oil spill cleanup</span>
+        <span class="ticker-item">Candle wax → upcycled goods</span>
+        <span class="ticker-item">Coffee grounds → urban farms</span>
+        <span class="ticker-item">Wood scraps → artist studios</span>
+        <span class="ticker-item">Fruit peels → animal feed</span>
+        <span class="ticker-item">Fabric offcuts → schools</span>
+        <span class="ticker-item">Brewery grain → compost</span>
+        <span class="ticker-item">Cardboard → small businesses</span>
+        <span class="ticker-item">Hair clippings → oil spill cleanup</span>
+        <span class="ticker-item">Candle wax → upcycled goods</span>
+    </div>
+</div>
+
+<!-- HEADER -->
+<header>
+    <div class="logo">
+        <div class="logo-dot"></div>
+        WasteWeb
+    </div>
+    <div class="header-tag">Circular Economy Platform</div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-kicker">
+        <div class="hero-kicker-line"></div>
+        AI-Powered Resource Matching
+    </div>
+    <h1 class="hero-title">
+        Nothing<br>
+        <span class="line2">is waste.</span>
+        <span class="line3">Just misplaced.</span>
+    </h1>
+    <p class="hero-subtitle">
+        Upload what you think is trash.<br>
+        We'll find it a <strong>new life</strong> — instantly.
+    </p>
+</section>
+
+<!-- MAIN GRID -->
+<main class="main">
+
+    <!-- LEFT: UPLOAD FORM -->
+    <div class="upload-card">
+        <div class="card-eyebrow">Upload a resource</div>
+
+        <!-- CATEGORY PILLS -->
+        <div class="category-select" id="catPills">
+            <button class="cat-pill active" data-cat="Food & Organic">🌱 Food & Organic</button>
+            <button class="cat-pill" data-cat="Material">🪵 Material</button>
+            <button class="cat-pill" data-cat="Packaging">📦 Packaging</button>
+            <button class="cat-pill" data-cat="Textile">👕 Textile</button>
+            <button class="cat-pill" data-cat="Electronic">💡 Electronic</button>
+            <button class="cat-pill" data-cat="Other">✦ Other</button>
+        </div>
+
+        <div class="field">
+            <label>What's the item?</label>
+            <input type="text" id="description" placeholder="e.g. used coffee grounds, wood offcuts…" />
+        </div>
+
+        <div class="qty-row">
+            <div class="field">
+                <label>Quantity</label>
+                <input type="number" id="quantity" placeholder="20" min="0.1" step="0.1" />
+            </div>
+            <div class="field">
+                <label>Unit</label>
+                <select id="unit">
+                    <option value="lbs">lbs</option>
+                    <option value="kg">kg</option>
+                    <option value="units">units</option>
+                    <option value="gallons">gallons</option>
+                    <option value="liters">liters</option>
+                    <option value="bags">bags</option>
+                    <option value="boxes">boxes</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Your Location</label>
+            <input type="text" id="location" placeholder="e.g. Camden, NJ" />
+        </div>
+
+        <!-- LOADING STATE -->
+        <div class="loading-state" id="loading">
+            <div class="loading-orbs">
+                <div class="orb"></div>
+                <div class="orb"></div>
+                <div class="orb"></div>
+            </div>
+            <div class="loading-label">Finding the perfect match…</div>
+            <div class="loading-sub">AI is routing your resource</div>
+            <div class="loading-steps" id="loadingSteps"></div>
+        </div>
+
+        <button class="submit-btn" id="analyzeBtn" onclick="analyzeWaste()">
+            <div class="btn-inner">
+                <span>Find Matches</span>
+                <span class="btn-arrow">→</span>
+            </div>
+        </button>
+
+        <button class="reset-btn" id="resetBtn" onclick="resetForm()" style="display:none">
+            ← Start over
+        </button>
+    </div>
+
+    <!-- RIGHT: RESULTS -->
+    <div id="resultsArea">
+
+        <!-- EMPTY STATE -->
+        <div class="empty-state" id="emptyState">
+            <span class="empty-icon">🌍</span>
+            <div class="empty-title">Your resource match will appear here</div>
+            <div class="empty-sub">Every piece of waste is just a resource<br>waiting for the right owner.</div>
+            <div class="example-chips">
+                <div class="example-chip" onclick="fillExample('coffee grounds', '20', 'lbs', 'Camden, NJ')">☕ Coffee grounds</div>
+                <div class="example-chip" onclick="fillExample('wood scraps', '50', 'lbs', 'Philadelphia, PA')">🪵 Wood scraps</div>
+                <div class="example-chip" onclick="fillExample('cardboard boxes', '30', 'units', 'Brooklyn, NY')">📦 Cardboard boxes</div>
+                <div class="example-chip" onclick="fillExample('fabric offcuts', '10', 'kg', 'Chicago, IL')">👕 Fabric offcuts</div>
+                <div class="example-chip" onclick="fillExample('brewery grain', '100', 'lbs', 'Austin, TX')">🍺 Brewery grain</div>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div class="results-panel" id="results">
+
+            <!-- RESULT HEADER -->
+            <div class="result-header-card">
+                <div class="result-label">// Resource identified</div>
+                <div class="result-title" id="result-description"></div>
+                <div class="result-category-tag">
+                    <span>◆</span>
+                    <span id="result-category"></span>
+                </div>
+            </div>
+
+            <!-- IMPACT -->
+            <div class="section-title">Environmental Impact</div>
+            <div class="impact-grid">
+                <div class="impact-card">
+                    <div class="impact-num count-up" id="impact-co2">—</div>
+                    <div class="impact-unit">kg CO₂ Saved</div>
+                </div>
+                <div class="impact-card">
+                    <div class="impact-num count-up" id="impact-landfill">—</div>
+                    <div class="impact-unit">kg Landfill Avoided</div>
+                </div>
+                <div class="impact-card">
+                    <div class="impact-num">🌍</div>
+                    <div class="impact-unit">Equivalent to</div>
+                    <div class="impact-eq" id="impact-equivalent">—</div>
+                </div>
+            </div>
+
+            <!-- REUSE OPTIONS -->
+            <div class="section-title">Best Reuse Options</div>
+            <div class="reuse-list" id="reuse-list"></div>
+
+            <!-- MATCHES -->
+            <div class="section-title">Nearby Matches</div>
+            <div class="matches-list" id="matches-list"></div>
+
+            <button class="connect-btn">
+                <span>🤝</span> Connect with all matches
+            </button>
+
+        </div>
+    </div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-manifesto">
+        We're not managing waste.<br>
+        We're <em>eliminating the concept of it.</em>
+    </div>
+    <p class="footer-sub">WasteWeb · AI-Powered Circular Economy · Built to win ♻</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    // ─── CUSTOM CURSOR ───
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let ringX = 0, ringY = 0, curX = 0, curY = 0;
+
+    document.addEventListener('mousemove', e => {
+        curX = e.clientX; curY = e.clientY;
+        cursor.style.left = curX + 'px';
+        cursor.style.top = curY + 'px';
+    });
+
+    function animateRing() {
+        ringX += (curX - ringX) * 0.12;
+        ringY += (curY - ringY) * 0.12;
+        ring.style.left = ringX + 'px';
+        ring.style.top = ringY + 'px';
+        requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    document.querySelectorAll('button, input, select, .example-chip, .cat-pill').forEach(el => {
+        el.addEventListener('mouseenter', () => { cursor.classList.add('hovering'); ring.classList.add('hovering'); });
+        el.addEventListener('mouseleave', () => { cursor.classList.remove('hovering'); ring.classList.remove('hovering'); });
+    });
+
+    // ─── CATEGORY PILLS ───
+    let selectedCategory = 'Food & Organic';
+    document.querySelectorAll('.cat-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+            document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            selectedCategory = pill.dataset.cat;
+        });
+    });
+
+    // ─── EXAMPLE CHIPS ───
+    function fillExample(desc, qty, unit, loc) {
+        document.getElementById('description').value = desc;
+        document.getElementById('quantity').value = qty;
+        document.getElementById('unit').value = unit;
+        document.getElementById('location').value = loc;
+        document.getElementById('description').focus();
+        showToast('Example loaded — hit Find Matches!');
+    }
+
+    // ─── TOAST ───
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ─── LOADING STEPS ───
+    const steps = [
+        'Classifying waste type…',
+        'Calculating environmental impact…',
+        'Scanning nearby organizations…',
+        'Ranking by urgency & distance…',
+    ];
+
+    function animateLoadingSteps() {
+        const container = document.getElementById('loadingSteps');
+        container.innerHTML = '';
+        steps.forEach((step, i) => {
+            const el = document.createElement('div');
+            el.className = 'loading-step';
+            el.textContent = step;
+            el.style.animationDelay = (i * 0.6) + 's';
+            container.appendChild(el);
+        });
+    }
+
+    // ─── COUNT UP ANIMATION ───
+    function countUp(el, target, duration = 1200) {
+        const start = performance.now();
+        const isFloat = String(target).includes('.');
+        function update(now) {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const val = eased * target;
+            el.textContent = isFloat ? val.toFixed(1) : Math.round(val);
+            if (progress < 1) requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+    }
+
+    // ─── MAIN ANALYZE ───
+    async function analyzeWaste() {
+        const description = document.getElementById('description').value.trim();
+        const quantity = document.getElementById('quantity').value;
+        const unit = document.getElementById('unit').value;
+        const location = document.getElementById('location').value.trim();
+
+        if (!description) {
+            showToast('Please describe your waste item first!');
+            document.getElementById('description').focus();
+            return;
+        }
+
+        // Show loading
+        document.getElementById('analyzeBtn').style.display = 'none';
+        document.getElementById('loading').classList.add('active');
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('results').classList.remove('visible');
+        animateLoadingSteps();
+
+        try {
+            const response = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description, quantity, unit, location })
+            });
+
+            if (!response.ok) throw new Error('Server error');
+            const data = await response.json();
+            renderResults(data);
+
+        } catch (err) {
+            showToast('Something went wrong — please try again');
+            resetForm();
+        }
+    }
+
+    function renderResults(data) {
+        document.getElementById('loading').classList.remove('active');
+        document.getElementById('analyzeBtn').style.display = 'none';
+        document.getElementById('resetBtn').style.display = 'flex';
+
+        // Header
+        document.getElementById('result-description').textContent = data.cleanDescription || 'Resource identified';
+        document.getElementById('result-category').textContent = data.category || 'Other';
+
+        // Impact with count-up
+        const stats = data.impactStats || {};
+        const co2El = document.getElementById('impact-co2');
+        const lfEl = document.getElementById('impact-landfill');
+
+        if (stats.co2SavedKg) {
+            co2El.textContent = '0';
+            countUp(co2El, stats.co2SavedKg);
+        } else { co2El.textContent = '—'; }
+
+        if (stats.landfillAvoidedKg) {
+            lfEl.textContent = '0';
+            countUp(lfEl, stats.landfillAvoidedKg);
+        } else { lfEl.textContent = '—'; }
+
+        document.getElementById('impact-equivalent').textContent = stats.equivalentTo || '—';
+
+        // Reuse options
+        const reuseList = document.getElementById('reuse-list');
+        reuseList.innerHTML = '';
+        (data.reuseOptions || []).forEach((opt, i) => {
+            const el = document.createElement('div');
+            el.className = 'reuse-card';
+            el.style.animationDelay = (i * 0.1) + 's';
+            el.innerHTML = `
+                <div class="reuse-emoji">${opt.icon || '♻️'}</div>
+                <div class="reuse-body">
+                    <div class="reuse-top">
+                        <div class="reuse-name">${opt.title}</div>
+                        <div class="priority-tag priority-${opt.priority}">${opt.priority}</div>
+                    </div>
+                    <div class="reuse-desc">${opt.description}</div>
+                </div>
+            `;
+            reuseList.appendChild(el);
+        });
+
+        // Matches
+        const matchList = document.getElementById('matches-list');
+        matchList.innerHTML = '';
+        (data.matches || []).forEach((match, i) => {
+            const el = document.createElement('div');
+            el.className = `match-card urgency-${match.urgency}`;
+            el.style.animationDelay = (i * 0.1) + 's';
+            el.innerHTML = `
+                <div class="match-top">
+                    <div class="match-name">${match.name}</div>
+                    <div class="match-dist">📍 ${match.distance}</div>
+                </div>
+                <div class="match-type">${match.type} · ${match.urgency} urgency</div>
+                <div class="match-need">${match.need}</div>
+            `;
+            matchList.appendChild(el);
+        });
+
+        document.getElementById('results').classList.add('visible');
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showToast('✓ Match found! ' + (data.matches?.length || 0) + ' organizations nearby');
+    }
+
+    function resetForm() {
+        document.getElementById('results').classList.remove('visible');
+        document.getElementById('emptyState').style.display = 'block';
+        document.getElementById('loading').classList.remove('active');
+        document.getElementById('analyzeBtn').style.display = 'block';
+        document.getElementById('resetBtn').style.display = 'none';
+        document.getElementById('description').value = '';
+        document.getElementById('quantity').value = '';
+        document.getElementById('location').value = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Enter key
+    document.getElementById('description').addEventListener('keypress', e => {
+        if (e.key === 'Enter') analyzeWaste();
+    });
+</script>
+</body>
+</html>
