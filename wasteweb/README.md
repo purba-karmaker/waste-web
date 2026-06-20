@@ -32,7 +32,7 @@ Libraries: Lombok for boilerplate reduction, OkHttp for HTTP requests, Jackson f
 - How to securely manage API keys in a project
 - What structural front and backends look like
 
-##What's next for Waste Web
+## What's next for Waste Web
 - Add authentication for users and businesses
 - Enable real-time notifications for nearby matches
 - Expand AI suggestions to cover more types of waste.
